@@ -1,0 +1,1 @@
+This library implement the Tuya Smart interface for Home Assistant.
