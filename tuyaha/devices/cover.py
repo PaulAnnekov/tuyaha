@@ -1,4 +1,4 @@
-from tuyapy.devices.base import TuyaDevice
+from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaCover(TuyaDevice):

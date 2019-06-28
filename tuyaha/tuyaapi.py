@@ -3,7 +3,7 @@ import logging
 import requests
 import time
 
-from tuyapy.devices.factory import get_tuya_device
+from tuyaha.devices.factory import get_tuya_device
 
 
 TUYACLOUDURL = "https://px1.tuya{}.com"

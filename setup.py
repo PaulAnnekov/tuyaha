@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="tuyapy",
-    version="0.1.3",
-    author="Tuya Inc.",
-    author_email="tuyasmart@tuya.com",
-    description="A Python library for Tuya Device with Python 3+",
+    name="tuyaha",
+    version="0.0.1",
+    author="Pavlo Annekov",
+    author_email="paul.annekov@gmail.com",
+    description="A Python library that implements a Tuya API endpoint that was specially designed for Home Assistant",
     long_description=long_description,
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -18,4 +18,3 @@ setuptools.setup(
         "Operating System :: OS Independent"
     ),
 )
-

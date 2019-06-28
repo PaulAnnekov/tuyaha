@@ -1,11 +1,11 @@
 
-from tuyapy.devices.climate import TuyaClimate
-from tuyapy.devices.light import TuyaLight
-from tuyapy.devices.scene import TuyaScene
-from tuyapy.devices.fan import TuyaFanDevice
-from tuyapy.devices.cover import TuyaCover
-from tuyapy.devices.lock import TuyaLock
-from tuyapy.devices.switch import TuyaSwitch
+from tuyaha.devices.climate import TuyaClimate
+from tuyaha.devices.light import TuyaLight
+from tuyaha.devices.scene import TuyaScene
+from tuyaha.devices.fan import TuyaFanDevice
+from tuyaha.devices.cover import TuyaCover
+from tuyaha.devices.lock import TuyaLock
+from tuyaha.devices.switch import TuyaSwitch
 
 def get_tuya_device(data, api):
     dev_type = data.get('dev_type')
