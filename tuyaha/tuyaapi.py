@@ -90,7 +90,7 @@ class TuyaApi:
     def refresh_access_token(self):
         data = "grant_type=refresh_token&refresh_token="+SESSION.refreshToken
         response = requests.get(
-            (TUYACLOUDURL+"homeassistant/access.do").format(SESSION.region)
+            (TUYACLOUDURL+'/homeassistant/access.do').format(SESSION.region)
             + "?" + data)
         response_json = response.json()
         if response_json.get('responseStatus') == 'error':
