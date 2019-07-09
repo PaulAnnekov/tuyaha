@@ -106,7 +106,7 @@ class TuyaApi:
 
     def discover_devices(self):
         response = self._request('Discovery', 'discovery')
-        if response['header']['code'] == 'SUCCESS':
+        if response and response['header']['code'] == 'SUCCESS':
             SESSION.devices = []
             for device in response['payload']['devices']:
                 SESSION.devices.extend(get_tuya_device(device, self))
@@ -132,7 +132,7 @@ class TuyaApi:
         if param is None:
             param = {}
         response = self._request(action, namespace, devId, param)
-        if response['header']['code'] == 'SUCCESS':
+        if response and response['header']['code'] == 'SUCCESS':
             success = True
         else:
             success = False
@@ -158,6 +158,9 @@ class TuyaApi:
             (TUYACLOUDURL+'/homeassistant/skill').format(SESSION.region),
             json = data
         )
+        if not response.ok:
+            _LOGGER.warning("request error, status code is %d, device %s", devId, response.status_code)
+            return
         response_json = response.json()
         if response_json['header']['code'] != 'SUCCESS':
             _LOGGER.debug("control device error, error code is " +
