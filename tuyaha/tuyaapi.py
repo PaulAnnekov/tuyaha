@@ -104,14 +104,20 @@ class TuyaApi:
         self.check_access_token()
         return self.discover_devices()
 
-    def discover_devices(self):
+    def discovery(self):
         response = self._request('Discovery', 'discovery')
         if response and response['header']['code'] == 'SUCCESS':
-            SESSION.devices = []
-            for device in response['payload']['devices']:
-                SESSION.devices.extend(get_tuya_device(device, self))
             return response['payload']['devices']
         return None
+
+    def discover_devices(self):
+        devices = self.discovery()
+        if not devices:
+            return None
+        SESSION.devices = []
+        for device in devices:
+            SESSION.devices.extend(get_tuya_device(device, self))
+        return devices
 
     def get_devices_by_type(self, dev_type):
         device_list = []
