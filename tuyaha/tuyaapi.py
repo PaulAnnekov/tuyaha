@@ -165,7 +165,7 @@ class TuyaApi:
             json = data
         )
         if not response.ok:
-            _LOGGER.warning("request error, status code is %d, device %s", devId, response.status_code)
+            _LOGGER.warning("request error, status code is %d, device %s", response.status_code, devId)
             return
         response_json = response.json()
         if response_json['header']['code'] != 'SUCCESS':
