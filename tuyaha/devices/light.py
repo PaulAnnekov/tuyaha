@@ -11,7 +11,7 @@ class TuyaLight(TuyaDevice):
 
     def brightness(self):
         work_mode = self.data.get("color_mode")
-        if work_mode == "colour":
+        if work_mode == "colour" and "color" in self.data:
             brightness = int(self.data.get("color").get("brightness") * 255 / 100)
         else:
             brightness = self.data.get("brightness")
