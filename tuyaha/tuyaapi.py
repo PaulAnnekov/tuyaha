@@ -45,7 +45,6 @@ class TuyaApi:
             return SESSION.devices
 
     def get_access_token(self):
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}  # have a test
         response = requests.post(
             (TUYACLOUDURL + "/homeassistant/auth.do").format(SESSION.region),
             data={
@@ -144,7 +143,6 @@ class TuyaApi:
         return success, response
 
     def _request(self, name, namespace, devId=None, payload={}):
-        headers = {"Content-Type": "application/json"}
         header = {"name": name, "namespace": namespace, "payloadVersion": 1}
         payload["accessToken"] = SESSION.accessToken
         if namespace != "discovery":
