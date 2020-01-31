@@ -14,7 +14,29 @@ class TuyaLight(TuyaDevice):
         if work_mode == "colour" and "color" in self.data:
             brightness = int(self.data.get("color").get("brightness") * 255 / 100)
         else:
-            brightness = self.data.get("brightness")
+
+            # Tuya API return 25 as a brightness value when the brightness is set to 1% in the app
+            # And it return 255 when the brightness is 100% in the app
+            # So we need to convert that values to HA brightnes
+
+            # So we need to convert Tuya API value to HA value:
+            #
+            #  Tuya |   HA
+            # ------------
+            #    25 |    1
+            #   255 |  255
+
+            x1 = 25
+            y1 = 1
+
+            x2 = 255
+            y2 = 255
+
+            m = (y2 - y1) / (x2 - x1)
+            b = y1 - m * x1
+
+            brightness = round(int(self.data.get("brightness")) * m + b)
+
         return brightness
 
     def _set_brightness(self, brightness):
@@ -67,8 +89,40 @@ class TuyaLight(TuyaDevice):
 
     def set_brightness(self, brightness):
         """Set the brightness(0-255) of light."""
-        value = int(brightness * 100 / 255)
-        self.api.device_control(self.obj_id, "brightnessSet", {"value": value})
+
+        # 'brightness' is the value from the Home Assistant point of view:
+        # Integer between 0 and 255 for how bright the light should be, where 0
+        # means the light is off, 1 is the minimum brightness and 255 is the
+        # maximum brightness supported by the light
+        #
+        # https://www.home-assistant.io/integrations/light/
+
+        # Tuya API method "brightnessSet" want to recieve int number from 11 to 100
+        #
+        #  * 11 is show as 1% in the TuyaSmart app
+        #  * 100 is show as 100% in the TuyaSmart app
+        #
+        # Sending value less than 11 to "brightnessSet" just turns the light off
+
+        # So we need to convert HA value to Tuya API value:
+        #
+        #   HA | Tuya
+        # ------------
+        #    1 |   11
+        #  255 |  100
+
+        x1 = 1
+        y1 = 11
+
+        x2 = 255
+        y2 = 100
+
+        m = (y2 - y1) / (x2 - x1)
+        b = y1 - m * x1
+
+        tuya_value = round(brightness * m + b)
+
+        self.api.device_control(self.obj_id, "brightnessSet", {"value": tuya_value})
 
     def set_color(self, color):
         """Set the color of light."""
