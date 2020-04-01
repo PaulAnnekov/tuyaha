@@ -6,8 +6,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="tuyaha",
-    version="0.0.6",
-    author="ThePinkOwl (Roger Miret Giné), Pavlo Annekov and original Tuya authors",
+    version="0.0.5",
+    author="Pavlo Annekov and original Tuya authors",
     author_email="paul.annekov@gmail.com",
     description="A Python library that implements a Tuya API endpoint that was specially designed for Home Assistant",
     long_description=long_description,
