@@ -4,6 +4,7 @@ import time
 
 import requests
 from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import HTTPError as RequestsHTTPError
 
 from tuyaha.devices.factory import get_tuya_device
 
@@ -59,6 +60,12 @@ class TuyaApi:
             )
         except RequestsConnectionError as ex:
             raise TuyaNetException from ex
+
+        if response.status_code >= 500:
+            try:
+                response.raise_for_status()
+            except RequestsHTTPError as ex:
+                raise TuyaServerException from ex
 
         response_json = response.json()
         if response_json.get("responseStatus") == "error":
@@ -175,4 +182,8 @@ class TuyaAPIException(Exception):
 
 
 class TuyaNetException(Exception):
+    pass
+
+
+class TuyaServerException(Exception):
     pass
