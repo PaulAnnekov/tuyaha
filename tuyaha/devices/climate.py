@@ -24,7 +24,7 @@ class TuyaClimate(TuyaDevice):
         return self.data.get("temperature")
 
     def target_temperature_step(self):
-        return 1
+        return 0.5
 
     def current_fan_mode(self):
         """Return the fan setting."""
@@ -66,7 +66,7 @@ class TuyaClimate(TuyaDevice):
     def set_temperature(self, temperature):
         """Set new target temperature."""
         self.api.device_control(
-            self.obj_id, "temperatureSet", {"value": int(temperature)}
+            self.obj_id, "temperatureSet", {"value": float(temperature)}
         )
 
     def set_humidity(self, humidity):
