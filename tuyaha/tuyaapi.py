@@ -3,6 +3,8 @@ import logging
 import time
 
 import requests
+from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests.exceptions import HTTPError as RequestsHTTPError
 
 from tuyaha.devices.factory import get_tuya_device
 
@@ -45,16 +47,26 @@ class TuyaApi:
             return SESSION.devices
 
     def get_access_token(self):
-        response = requests.post(
-            (TUYACLOUDURL + "/homeassistant/auth.do").format(SESSION.region),
-            data={
-                "userName": SESSION.username,
-                "password": SESSION.password,
-                "countryCode": SESSION.countryCode,
-                "bizType": SESSION.bizType,
-                "from": "tuya",
-            },
-        )
+        try:
+            response = requests.post(
+                (TUYACLOUDURL + "/homeassistant/auth.do").format(SESSION.region),
+                data={
+                    "userName": SESSION.username,
+                    "password": SESSION.password,
+                    "countryCode": SESSION.countryCode,
+                    "bizType": SESSION.bizType,
+                    "from": "tuya",
+                },
+            )
+        except RequestsConnectionError as ex:
+            raise TuyaNetException from ex
+
+        if response.status_code >= 500:
+            try:
+                response.raise_for_status()
+            except RequestsHTTPError as ex:
+                raise TuyaServerException from ex
+
         response_json = response.json()
         if response_json.get("responseStatus") == "error":
             message = response_json.get("errorMsg")
@@ -77,7 +89,6 @@ class TuyaApi:
     def check_access_token(self):
         if SESSION.username == "" or SESSION.password == "":
             raise TuyaAPIException("can not find username or password")
-            return
         if SESSION.accessToken == "" or SESSION.refreshToken == "":
             self.get_access_token()
         elif SESSION.expireTime <= REFRESHTIME + int(time.time()):
@@ -167,4 +178,12 @@ class TuyaApi:
 
 
 class TuyaAPIException(Exception):
+    pass
+
+
+class TuyaNetException(Exception):
+    pass
+
+
+class TuyaServerException(Exception):
     pass
