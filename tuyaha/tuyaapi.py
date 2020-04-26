@@ -58,9 +58,7 @@ class TuyaApi:
                 },
             )
         except RequestsConnectionError as ex:
-            if "NewConnectionError" in str(ex):
-                raise TuyaNETException from ex
-            raise ex
+            raise TuyaNetException from ex
 
         response_json = response.json()
         if response_json.get("responseStatus") == "error":
@@ -176,5 +174,5 @@ class TuyaAPIException(Exception):
     pass
 
 
-class TuyaNETException(Exception):
+class TuyaNetException(Exception):
     pass
