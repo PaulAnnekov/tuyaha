@@ -58,13 +58,11 @@ class TuyaApi:
                     "from": "tuya",
                 },
             )
+            response.raise_for_status()
         except RequestsConnectionError as ex:
             raise TuyaNetException from ex
-
-        if response.status_code >= 500:
-            try:
-                response.raise_for_status()
-            except RequestsHTTPError as ex:
+        except RequestsHTTPError as ex:
+            if response.status_code >= 500:
                 raise TuyaServerException from ex
 
         response_json = response.json()
