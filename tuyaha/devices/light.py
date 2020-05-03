@@ -84,6 +84,14 @@ class TuyaLight(TuyaDevice):
             hsv_color["hue"] = 0
         self.api.device_control(self.obj_id, "colorSet", {"color": hsv_color})
 
+    def set_white(self):
+        """Set the color of light to white."""
+        hsv_color = {}
+        hsv_color["hue"] = 0
+        hsv_color["saturation"] = 0
+        hsv_color["brightness"] = 100
+        self.api.device_control(self.obj_id, "colorSet", {"color": hsv_color})
+
     def set_color_temp(self, color_temp):
         self.api.device_control(
             self.obj_id, "colorTemperatureSet", {"value": color_temp}
