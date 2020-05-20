@@ -25,10 +25,7 @@ class TuyaLight(TuyaDevice):
             self.data["brightness"] = brightness
 
     def support_color(self):
-        if self.data.get("color") is None:
-            return False
-        else:
-            return True
+        return self.data["color_mode"] == "colour"
 
     def support_color_temp(self):
         if self.data.get("color_temp") is None:
