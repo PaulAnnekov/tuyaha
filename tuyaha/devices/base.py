@@ -46,3 +46,16 @@ class TuyaDevice:
             self.data = response["payload"]["data"]
             return True
         return
+
+    def __repr__(self):
+        module = self.__class__.__module__
+        if module is None or module == str.__class__.__module__:
+            module = ""
+        else:
+            module += "."
+        return '<{module}{clazz}: "{name}" ({obj_id})>'.format(
+            module=module,
+            clazz=self.__class__.__name__,
+            name=self.obj_name,
+            obj_id=self.obj_id
+        )
