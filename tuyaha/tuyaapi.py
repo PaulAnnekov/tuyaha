@@ -129,8 +129,9 @@ class TuyaApi:
     def get_devices_by_type(self, dev_type):
         device_list = []
         for device in SESSION.devices:
-            if device.dev_type() == dev_type:
+            if device.device_type() == dev_type:
                 device_list.append(device)
+        return device_list
 
     def get_all_devices(self):
         return SESSION.devices
