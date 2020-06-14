@@ -2,11 +2,12 @@ from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaLight(TuyaDevice):
-    def __init__(self):
-        self.last_hs_color = None
-        self.last_brightness = None
-        self.last_color_temp = None
-        self.last_state = None
+    def __init__(self, data, api):
+        super().__init__(data, api)
+        self.last_hs_color = (0, 0)
+        self.last_brightness = 100
+        self.last_color_temp = 1000
+        self.last_state = False
 
     def state(self):
         state = self.data.get("state")
