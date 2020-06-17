@@ -2,12 +2,21 @@ from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaLight(TuyaDevice):
+    def __init__(self, data, api):
+        super().__init__(data, api)
+        self.last_hs_color = (0, 0)
+        self.last_brightness = 100
+        self.last_color_temp = 1000
+        self.has_support_color = False
+        self.has_support_color_temp = False
+        self.last_state = False
+
     def state(self):
         state = self.data.get("state")
-        if state == "true":
-            return True
+        if state is not None:
+            return state == "true"
         else:
-            return False
+            return self.last_state
 
     def brightness(self):
         work_mode = self.data.get("color_mode")
@@ -15,6 +24,8 @@ class TuyaLight(TuyaDevice):
             brightness = int(self.data.get("color").get("brightness") * 255 / 100)
         else:
             brightness = self.data.get("brightness")
+        if brightness is None:
+            brightness = self.last_brightness
         return brightness
 
     def _set_brightness(self, brightness):
@@ -23,22 +34,21 @@ class TuyaLight(TuyaDevice):
             self.data["color"]["brightness"] = brightness
         else:
             self.data["brightness"] = brightness
+        self.last_brightness = brightness
 
     def support_color(self):
-        if self.data.get("color") is None:
-            return False
-        else:
-            return True
+        if self.data.get("color") is not None or self.data.get("color_mode") == "colour":
+            self.has_support_color = True
+        return self.has_support_color
 
     def support_color_temp(self):
-        if self.data.get("color_temp") is None:
-            return False
-        else:
-            return True
+        if self.data.get("color_temp") is not None:  # or self.data.get("color_mode") == "colour_temp" ???:
+            self.has_support_color_temp = True
+        return self.has_support_color_temp
 
     def hs_color(self):
         if self.data.get("color") is None:
-            return None
+            return self.last_hs_color
         else:
             work_mode = self.data.get("color_mode")
             if work_mode == "colour":
@@ -49,7 +59,7 @@ class TuyaLight(TuyaDevice):
 
     def color_temp(self):
         if self.data.get("color_temp") is None:
-            return None
+            return self.last_color_temp
         else:
             return self.data.get("color_temp")
 
@@ -60,14 +70,17 @@ class TuyaLight(TuyaDevice):
         return 1000
 
     def turn_on(self):
+        self.last_state = True
         self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
 
     def turn_off(self):
+        self.last_state = False
         self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
 
     def set_brightness(self, brightness):
         """Set the brightness(0-255) of light."""
         value = int(brightness * 100 / 255)
+        self.last_brightness = value
         self.api.device_control(self.obj_id, "brightnessSet", {"value": value})
 
     def set_color(self, color):
@@ -82,9 +95,12 @@ class TuyaLight(TuyaDevice):
         # color white
         if hsv_color["saturation"] == 0:
             hsv_color["hue"] = 0
+        self.last_hs_color = (hsv_color["hue"], hsv_color["saturation"])
+        self.last_brightness = hsv_color["brightness"]
         self.api.device_control(self.obj_id, "colorSet", {"color": hsv_color})
 
     def set_color_temp(self, color_temp):
+        self.last_color_temp = color_temp
         self.api.device_control(
             self.obj_id, "colorTemperatureSet", {"value": color_temp}
         )
