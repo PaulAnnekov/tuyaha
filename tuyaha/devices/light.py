@@ -7,6 +7,8 @@ class TuyaLight(TuyaDevice):
         self.last_hs_color = (0, 0)
         self.last_brightness = 100
         self.last_color_temp = 1000
+        self.has_support_color = False
+        self.has_support_color_temp = False
         self.last_state = False
 
     def state(self):
@@ -35,13 +37,14 @@ class TuyaLight(TuyaDevice):
         self.last_brightness = brightness
 
     def support_color(self):
-        return self.data.get("color") is not None or self.data.get("color_mode") == "colour"
+        if self.data.get("color") is not None or self.data.get("color_mode") == "colour":
+            self.has_support_color = True
+        return self.has_support_color
 
     def support_color_temp(self):
-        if self.data.get("color_temp") is None:
-            return False
-        else:
-            return True
+        if self.data.get("color_temp") is not None:  # or self.data.get("color_mode") == "colour_temp" ???:
+            self.has_support_color_temp = True
+        return self.has_support_color_temp
 
     def hs_color(self):
         if self.data.get("color") is None:
