@@ -2,13 +2,6 @@ from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaFanDevice(TuyaDevice):
-    def state(self):
-        state = self.data.get("state")
-        if state == "true":
-            return True
-        else:
-            return False
-
     def speed(self):
         return self.data.get("speed")
 
@@ -33,10 +26,14 @@ class TuyaFanDevice(TuyaDevice):
         self.api.device_control(self.obj_id, command)
 
     def turn_on(self):
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+        if result[0]:
+            self.data["state"] = "true"
 
     def turn_off(self):
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+        if result[0]:
+            self.data["state"] = "false"
 
     def support_oscillate(self):
         if self.oscillating() is None:

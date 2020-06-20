@@ -16,10 +16,14 @@ class TuyaDevice:
 
     def state(self):
         state = self.data.get("state")
-        if state == "true":
+        if state is None:
+            return None
+        elif state == "true":
             return True
-        else:
+        elif state == "false":
             return False
+        else:
+            return state
 
     def device_type(self):
         return self.dev_type

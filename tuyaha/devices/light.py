@@ -2,13 +2,6 @@ from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaLight(TuyaDevice):
-    def state(self):
-        state = self.data.get("state")
-        if state == "true":
-            return True
-        else:
-            return False
-
     def brightness(self):
         work_mode = self.data.get("color_mode")
         if work_mode == "colour" and "color" in self.data:
@@ -60,10 +53,14 @@ class TuyaLight(TuyaDevice):
         return 1000
 
     def turn_on(self):
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+        if result[0]:
+            self.data["state"] = "true"
 
     def turn_off(self):
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+        if result[0]:
+            self.data["state"] = "false"
 
     def set_brightness(self, brightness):
         """Set the brightness(0-255) of light."""
