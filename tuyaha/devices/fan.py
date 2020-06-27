@@ -26,14 +26,10 @@ class TuyaFanDevice(TuyaDevice):
         self.api.device_control(self.obj_id, command)
 
     def turn_on(self):
-        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
-        if result[0]:
-            self.data["state"] = "true"
+        self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
 
     def turn_off(self):
-        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
-        if result[0]:
-            self.data["state"] = "false"
+        self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
 
     def support_oscillate(self):
         if self.oscillating() is None:

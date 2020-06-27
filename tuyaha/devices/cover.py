@@ -4,15 +4,11 @@ from tuyaha.devices.base import TuyaDevice
 class TuyaCover(TuyaDevice):
     def open_cover(self):
         """Open the cover."""
-        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
-        if result[0]:
-            self.data["state"] = "true"
+        self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
 
     def close_cover(self):
         """Close cover."""
-        result = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
-        if result[0]:
-            self.data["state"] = "false"
+        self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
 
     def stop_cover(self):
         """Stop the cover."""

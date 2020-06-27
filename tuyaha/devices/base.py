@@ -1,5 +1,6 @@
 import time
 
+from distutils.util import strtobool
 
 class TuyaDevice:
     def __init__(self, data, api):
@@ -18,12 +19,10 @@ class TuyaDevice:
         state = self.data.get("state")
         if state is None:
             return None
-        elif state == "true":
-            return True
-        elif state == "false":
-            return False
+        elif isinstance(state, str):
+            return strtobool(state)
         else:
-            return state
+            return bool(state)
 
     def device_type(self):
         return self.dev_type
@@ -43,23 +42,10 @@ class TuyaDevice:
     def update(self):
         """Avoid get cache value after control."""
         time.sleep(0.5)
-        success, response = self.api.device_control(
-            self.obj_id, "QueryDevice", namespace="query"
-        )
-        if success:
-            self.data = response["payload"]["data"]
-            return True
-        return
-
-    def __repr__(self):
-        module = self.__class__.__module__
-        if module is None or module == str.__class__.__module__:
-            module = ""
-        else:
-            module += "."
-        return '<{module}{clazz}: "{name}" ({obj_id})>'.format(
-            module=module,
-            clazz=self.__class__.__name__,
-            name=self.obj_name,
-            obj_id=self.obj_id
-        )
+        devices = self.api.discovery()
+        if not devices:
+            return
+        for device in devices:
+            if device["id"] == self.obj_id:
+                self.data = device["data"]
+                return True
