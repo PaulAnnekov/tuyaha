@@ -60,10 +60,16 @@ class TuyaLight(TuyaDevice):
         return 1000
 
     def turn_on(self):
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+
+        if success:
+            self.data["state"] = "true"
 
     def turn_off(self):
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+
+        if success:
+            self.data["state"] = "false"
 
     def set_brightness(self, brightness):
         """Set the brightness(0-255) of light."""
