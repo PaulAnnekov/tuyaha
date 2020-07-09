@@ -8,11 +8,17 @@ class TuyaCover(TuyaDevice):
 
     def open_cover(self):
         """Open the cover."""
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
+
+        if success:
+            self.data["state"] = True
 
     def close_cover(self):
         """Close cover."""
-        self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
+
+        if success:
+            self.data["state"] = False
 
     def stop_cover(self):
         """Stop the cover."""

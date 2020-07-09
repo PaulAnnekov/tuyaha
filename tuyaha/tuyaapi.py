@@ -15,7 +15,6 @@ REFRESHTIME = 60 * 60 * 12
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class TuyaSession:
 
     username = ""
@@ -33,11 +32,14 @@ SESSION = TuyaSession()
 
 
 class TuyaApi:
+
     def init(self, username, password, countryCode, bizType=""):
         SESSION.username = username
         SESSION.password = password
         SESSION.countryCode = countryCode
         SESSION.bizType = bizType
+
+        self.requestSession = requests.Session()
 
         if username is None or password is None:
             return None
@@ -48,7 +50,7 @@ class TuyaApi:
 
     def get_access_token(self):
         try:
-            response = requests.post(
+            response = self.requestSession.post(
                 (TUYACLOUDURL + "/homeassistant/auth.do").format(SESSION.region),
                 data={
                     "userName": SESSION.username,
@@ -94,7 +96,7 @@ class TuyaApi:
 
     def refresh_access_token(self):
         data = "grant_type=refresh_token&refresh_token=" + SESSION.refreshToken
-        response = requests.get(
+        response = self.requestSession.get(
             (TUYACLOUDURL + "/homeassistant/access.do").format(SESSION.region)
             + "?"
             + data
@@ -158,7 +160,7 @@ class TuyaApi:
         if namespace != "discovery":
             payload["devId"] = devId
         data = {"header": header, "payload": payload}
-        response = requests.post(
+        response = self.requestSession.post(
             (TUYACLOUDURL + "/homeassistant/skill").format(SESSION.region), json=data
         )
         if not response.ok:
