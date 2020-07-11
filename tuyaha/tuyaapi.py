@@ -3,17 +3,23 @@ import logging
 import time
 
 import requests
+from datetime import datetime
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests.exceptions import HTTPError as RequestsHTTPError
+from threading import Lock
 
 from tuyaha.devices.factory import get_tuya_device
 
 TUYACLOUDURL = "https://px1.tuya{}.com"
 DEFAULTREGION = "us"
 
+MIN_DISCOVERY_INTERVAL = 25
+MAX_DISCOVERY_INTERVAL = 50
 REFRESHTIME = 60 * 60 * 12
 
 _LOGGER = logging.getLogger(__name__)
+lock = Lock()
+
 
 class TuyaSession:
 
@@ -32,6 +38,13 @@ SESSION = TuyaSession()
 
 
 class TuyaApi:
+
+    def __init__(self):
+        self._discovered_devices = None
+        self._last_discover = None
+        self._force_discovery = False
+        self._discovery_interval = MIN_DISCOVERY_INTERVAL
+        self._success_counter = 0
 
     def init(self, username, password, countryCode, bizType=""):
         SESSION.username = username
@@ -91,8 +104,10 @@ class TuyaApi:
             raise TuyaAPIException("can not find username or password")
         if SESSION.accessToken == "" or SESSION.refreshToken == "":
             self.get_access_token()
+            self._force_discovery = True
         elif SESSION.expireTime <= REFRESHTIME + int(time.time()):
             self.refresh_access_token()
+            self._force_discovery = True
 
     def refresh_access_token(self):
         data = "grant_type=refresh_token&refresh_token=" + SESSION.refreshToken
@@ -113,11 +128,42 @@ class TuyaApi:
         self.check_access_token()
         return self.discover_devices()
 
+    def update_device_data(self, dev_id, data):
+        for device in self._discovered_devices:
+            if device["id"] == dev_id:
+                device["data"] = data
+
+    def _call_discovery(self):
+        if not self._last_discover or self._force_discovery:
+            self._last_discover = datetime.now()
+            self._force_discovery = False
+            return True
+        difference = (datetime.now() - self._last_discover).total_seconds()
+        if difference > self._discovery_interval:
+            self._last_discover = datetime.now()
+            return True
+        return False
+
     def discovery(self):
-        response = self._request("Discovery", "discovery")
-        if response and response["header"]["code"] == "SUCCESS":
-            return response["payload"]["devices"]
-        return None
+        with lock:
+            if self._call_discovery():
+                response = self._request("Discovery", "discovery")
+                if response:
+                    result_code = response["header"]["code"]
+                    if result_code == "SUCCESS":
+                        self._discovery_interval = MIN_DISCOVERY_INTERVAL
+                        self._success_counter += 1
+                        self._discovered_devices = response["payload"]["devices"]
+                    elif result_code == "FrequentlyInvoke":
+                        self._discovery_interval = MAX_DISCOVERY_INTERVAL
+                        _LOGGER.debug(
+                            "Discovery FrequentlyInvoke error after %s success",
+                            str(self._success_counter),
+                        )
+                        self._success_counter = 0
+            else:
+                _LOGGER.debug("Discovery: Use cached info")
+        return self._discovered_devices
 
     def discover_devices(self):
         devices = self.discovery()

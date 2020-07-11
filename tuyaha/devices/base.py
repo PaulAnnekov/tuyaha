@@ -16,10 +16,14 @@ class TuyaDevice:
 
     def state(self):
         state = self.data.get("state")
-        if state == "true":
-            return True
-        else:
+        if state is None:
+            return None
+        elif isinstance(state, str):
+            if state == "true":
+                return True
             return False
+        else:
+            return bool(state)
 
     def device_type(self):
         return self.dev_type
@@ -36,9 +40,34 @@ class TuyaDevice:
     def iconurl(self):
         return self.icon
 
-    def update(self):
+    def _update_data(self, key, value):
+        if self.data:
+            if self.data.get(key) is None:
+                return
+            self.data[key] = value
+            self.api.update_device_data(self.obj_id, self.data)
+
+    def _control_device(self, action, param=None):
+        success, response = self.api.device_control(self.obj_id, action, param)
+        if not success:
+            self._update_data("online", False)
+        return success
+
+    def _update(self, use_discovery=False):
         """Avoid get cache value after control."""
         time.sleep(0.5)
+
+        if use_discovery:
+            # workaround for https://github.com/PaulAnnekov/tuyaha/issues/3
+            devices = self.api.discovery()
+            if not devices:
+                return
+            for device in devices:
+                if device["id"] == self.obj_id:
+                    self.data = device["data"]
+                    return True
+            return
+
         success, response = self.api.device_control(
             self.obj_id, "QueryDevice", namespace="query"
         )
@@ -59,3 +88,6 @@ class TuyaDevice:
             name=self.obj_name,
             obj_id=self.obj_id
         )
+
+    def update(self):
+        return self._update()
