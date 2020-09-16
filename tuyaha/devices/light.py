@@ -4,17 +4,18 @@ from tuyaha.devices.base import TuyaDevice
 MIN_BRIGHTNESS = 10.3
 BRIGHTNESS_STD_RANGE = (1, 255)
 
-COLTEMP_STATUS_RANGE = (1000, 36294)
 COLTEMP_SET_RANGE = (1000, 10000)
 COLTEMP_KELV_RANGE = (2700, 6500)
 
 
 class TuyaLight(TuyaDevice):
+
     def __init__(self, data, api):
         super().__init__(data, api)
         self._support_color = False
         self.brightness_white_range = BRIGHTNESS_STD_RANGE
         self.brightness_color_range = BRIGHTNESS_STD_RANGE
+        self.color_temp_range = COLTEMP_SET_RANGE
 
     def force_support_color(self):
         self._support_color = True
@@ -81,7 +82,7 @@ class TuyaLight(TuyaDevice):
         temp = self.data.get("color_temp")
         ret_value = TuyaLight._scale(
             temp,
-            COLTEMP_STATUS_RANGE,
+            self.color_temp_range,
             COLTEMP_KELV_RANGE,
         )
         return round(ret_value)
@@ -156,9 +157,6 @@ class TuyaLight(TuyaDevice):
             data_value = TuyaLight._scale(
                 color_temp,
                 COLTEMP_KELV_RANGE,
-                COLTEMP_STATUS_RANGE,
+                self.color_temp_range,
             )
             self._update_data("color_temp", round(data_value))
-
-    def update(self):
-        return self._update(use_discovery=True)

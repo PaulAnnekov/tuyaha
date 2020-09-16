@@ -12,5 +12,5 @@ class TuyaSwitch(TuyaDevice):
         if self._control_device("turnOnOff", {"value": "0"}):
             self._update_data("state", False)
 
-    def update(self):
+    def update(self, use_discovery=True):
         return self._update(use_discovery=True)

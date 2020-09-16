@@ -27,6 +27,3 @@ class TuyaCover(TuyaDevice):
         if support is None:
             return False
         return support
-
-    def update(self):
-        return self._update(use_discovery=True)

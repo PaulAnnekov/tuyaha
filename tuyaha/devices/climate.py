@@ -183,6 +183,3 @@ class TuyaClimate(TuyaDevice):
     def turn_off(self):
         if self._control_device("turnOnOff", {"value": "0"}):
             self._update_data("state", "false")
-
-    def update(self):
-        return self._update(use_discovery=True)
