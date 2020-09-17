@@ -1,7 +1,9 @@
 import time
 from datetime import datetime
+import logging
 
-QUERY_INTERVAL = 60
+_LOGGER = logging.getLogger(__name__)
+
 
 class TuyaDevice:
 
@@ -84,9 +86,9 @@ class TuyaDevice:
         else:
             # query can be called once every 60 seconds
             difference = (datetime.now() - self._last_query).total_seconds()
-            if difference < QUERY_INTERVAL:
+            if difference < self.api.query_interval:
                 return
-            if difference == QUERY_INTERVAL:
+            if difference == self.api.query_interval:
                 wait_delay = True
             if wait_delay:
                 time.sleep(0.5)
@@ -96,6 +98,22 @@ class TuyaDevice:
             self._last_query = datetime.now()
             if success:
                 data = response["payload"]["data"]
+
+            # Logging FrequentlyInvoke
+            else:
+                def get_result_code():
+                    if not response:
+                        return ""
+                    return response["header"]["code"]
+
+                result_code = get_result_code()
+                if result_code == "FrequentlyInvoke":
+                    _LOGGER.info(
+                        "Method [Query] for device %s fails using poll interval %s - error: %s",
+                        self.obj_id,
+                        self.api.query_interval,
+                        response["header"].get("msg", result_code),
+                    )
 
         if data:
             if not self.data:

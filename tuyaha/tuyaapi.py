@@ -1,4 +1,3 @@
-import json
 import logging
 import time
 
@@ -13,8 +12,10 @@ from tuyaha.devices.factory import get_tuya_device
 TUYACLOUDURL = "https://px1.tuya{}.com"
 DEFAULTREGION = "us"
 
-MIN_DISCOVERY_INTERVAL = 305
-MAX_DISCOVERY_INTERVAL = 305
+MIN_DISCOVERY_INTERVAL = 60.0
+DEF_DISCOVERY_INTERVAL = 305.0
+MIN_QUERY_INTERVAL = 10.0
+DEF_QUERY_INTERVAL = 60.0
 REFRESHTIME = 60 * 60 * 12
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,11 +41,31 @@ SESSION = TuyaSession()
 class TuyaApi:
 
     def __init__(self):
+        self._requestSession = None
         self._discovered_devices = None
         self._last_discover = None
         self._force_discovery = False
-        self._discovery_interval = MIN_DISCOVERY_INTERVAL
-        self._success_counter = 0
+        self._discovery_interval = 0.0
+        self._query_interval = 0.0
+        self._discovery_fail_count = 0
+
+    @property
+    def discovery_interval(self):
+        return self._discovery_interval or DEF_DISCOVERY_INTERVAL
+
+    @discovery_interval.setter
+    def discovery_interval(self, val):
+        if val >= MIN_DISCOVERY_INTERVAL:
+            self._discovery_interval = val
+
+    @property
+    def query_interval(self):
+        return self._query_interval or DEF_QUERY_INTERVAL
+
+    @query_interval.setter
+    def query_interval(self, val):
+        if val >= MIN_QUERY_INTERVAL:
+            self._query_interval = val
 
     def init(self, username, password, countryCode, bizType=""):
         SESSION.username = username
@@ -52,7 +73,7 @@ class TuyaApi:
         SESSION.countryCode = countryCode
         SESSION.bizType = bizType
 
-        self.requestSession = requests.Session()
+        self._requestSession = requests.Session()
 
         if username is None or password is None:
             return None
@@ -63,7 +84,7 @@ class TuyaApi:
 
     def get_access_token(self):
         try:
-            response = self.requestSession.post(
+            response = self._requestSession.post(
                 (TUYACLOUDURL + "/homeassistant/auth.do").format(SESSION.region),
                 data={
                     "userName": SESSION.username,
@@ -111,7 +132,7 @@ class TuyaApi:
 
     def refresh_access_token(self):
         data = "grant_type=refresh_token&refresh_token=" + SESSION.refreshToken
-        response = self.requestSession.get(
+        response = self._requestSession.get(
             (TUYACLOUDURL + "/homeassistant/access.do").format(SESSION.region)
             + "?"
             + data
@@ -139,7 +160,7 @@ class TuyaApi:
             self._force_discovery = False
             return True
         difference = (datetime.now() - self._last_discover).total_seconds()
-        if difference > self._discovery_interval:
+        if difference > self.discovery_interval:
             self._last_discover = datetime.now()
             return True
         return False
@@ -151,16 +172,18 @@ class TuyaApi:
                 if response:
                     result_code = response["header"]["code"]
                     if result_code == "SUCCESS":
-                        self._discovery_interval = MIN_DISCOVERY_INTERVAL
-                        self._success_counter += 1
+                        self._discovery_fail_count = 0
                         self._discovered_devices = response["payload"]["devices"]
+
+                    # Logging FrequentlyInvoke
                     elif result_code == "FrequentlyInvoke":
-                        self._discovery_interval = MAX_DISCOVERY_INTERVAL
-                        _LOGGER.debug(
-                            "Discovery FrequentlyInvoke error after %s success",
-                            str(self._success_counter),
+                        self._discovery_fail_count += 1
+                        _LOGGER.info(
+                            "Method [Discovery] fails %s time(s) using poll interval %s - error: %s",
+                            self._discovery_fail_count,
+                            self.discovery_interval,
+                            response["header"].get("msg", result_code),
                         )
-                        self._success_counter = 0
             else:
                 _LOGGER.debug("Discovery: Use cached info")
         return self._discovered_devices
@@ -207,7 +230,7 @@ class TuyaApi:
             payload["devId"] = devId
         data = {"header": header, "payload": payload}
         try:
-            response = self.requestSession.post(
+            response = self._requestSession.post(
                 (TUYACLOUDURL + "/homeassistant/skill").format(SESSION.region), json=data
             )
         except RequestsConnectionError as ex:
