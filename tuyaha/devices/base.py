@@ -1,8 +1,5 @@
 import time
 from datetime import datetime
-import logging
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class TuyaDevice:
@@ -108,7 +105,7 @@ class TuyaDevice:
 
                 result_code = get_result_code()
                 if result_code == "FrequentlyInvoke":
-                    _LOGGER.info(
+                    self.api.log_message(
                         "Method [Query] for device %s fails using poll interval %s - error: %s",
                         self.obj_id,
                         self.api.query_interval,

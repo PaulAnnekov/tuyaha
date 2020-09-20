@@ -40,7 +40,8 @@ SESSION = TuyaSession()
 
 class TuyaApi:
 
-    def __init__(self):
+    def __init__(self, log_level_warn=True):
+        self._log_level_warn = log_level_warn
         self._requestSession = None
         self._discovered_devices = None
         self._last_discover = None
@@ -66,6 +67,12 @@ class TuyaApi:
     def query_interval(self, val):
         if val >= MIN_QUERY_INTERVAL:
             self._query_interval = val
+
+    def log_message(self, message, *args):
+        if self._log_level_warn:
+            _LOGGER.warning(message, *args)
+        else:
+            _LOGGER.debug(message, *args)
 
     def init(self, username, password, countryCode, bizType=""):
         SESSION.username = username
@@ -178,7 +185,7 @@ class TuyaApi:
                     # Logging FrequentlyInvoke
                     elif result_code == "FrequentlyInvoke":
                         self._discovery_fail_count += 1
-                        _LOGGER.info(
+                        self.log_message(
                             "Method [Discovery] fails %s time(s) using poll interval %s - error: %s",
                             self._discovery_fail_count,
                             self.discovery_interval,
