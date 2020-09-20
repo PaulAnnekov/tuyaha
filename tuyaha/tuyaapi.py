@@ -46,27 +46,37 @@ class TuyaApi:
         self._discovered_devices = None
         self._last_discover = None
         self._force_discovery = False
-        self._discovery_interval = 0.0
-        self._query_interval = 0.0
+        self._discovery_interval = DEF_DISCOVERY_INTERVAL
+        self._query_interval = DEF_QUERY_INTERVAL
         self._discovery_fail_count = 0
 
     @property
     def discovery_interval(self):
-        return self._discovery_interval or DEF_DISCOVERY_INTERVAL
+        return self._discovery_interval
 
     @discovery_interval.setter
     def discovery_interval(self, val):
-        if val >= MIN_DISCOVERY_INTERVAL:
-            self._discovery_interval = val
+        if val < MIN_DISCOVERY_INTERVAL:
+            _LOGGER.warning(
+                "Discovery interval below %s is invalid", MIN_DISCOVERY_INTERVAL
+            )
+            return
+
+        self._discovery_interval = val
 
     @property
     def query_interval(self):
-        return self._query_interval or DEF_QUERY_INTERVAL
+        return self._query_interval
 
     @query_interval.setter
     def query_interval(self, val):
-        if val >= MIN_QUERY_INTERVAL:
-            self._query_interval = val
+        if val < MIN_QUERY_INTERVAL:
+            _LOGGER.warning(
+                "Query interval below %s is invalid", MIN_QUERY_INTERVAL
+            )
+            return
+
+        self._query_interval = val
 
     def log_message(self, message, *args):
         if self._log_level_warn:
