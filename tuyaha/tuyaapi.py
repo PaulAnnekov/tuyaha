@@ -12,10 +12,10 @@ from tuyaha.devices.factory import get_tuya_device
 TUYACLOUDURL = "https://px1.tuya{}.com"
 DEFAULTREGION = "us"
 
-MIN_DISCOVERY_INTERVAL = 60.0
-DEF_DISCOVERY_INTERVAL = 305.0
+MIN_DISCOVERY_INTERVAL = 10.0
+DEF_DISCOVERY_INTERVAL = 60.0
 MIN_QUERY_INTERVAL = 10.0
-DEF_QUERY_INTERVAL = 60.0
+DEF_QUERY_INTERVAL = 30.0
 REFRESHTIME = 60 * 60 * 12
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,11 +57,9 @@ class TuyaApi:
     @discovery_interval.setter
     def discovery_interval(self, val):
         if val < MIN_DISCOVERY_INTERVAL:
-            _LOGGER.warning(
-                "Discovery interval below %s is invalid", MIN_DISCOVERY_INTERVAL
+            raise ValueError(
+                f"Discovery interval below {MIN_DISCOVERY_INTERVAL} seconds is invalid"
             )
-            return
-
         self._discovery_interval = val
 
     @property
@@ -71,11 +69,9 @@ class TuyaApi:
     @query_interval.setter
     def query_interval(self, val):
         if val < MIN_QUERY_INTERVAL:
-            _LOGGER.warning(
-                "Query interval below %s is invalid", MIN_QUERY_INTERVAL
+            raise ValueError(
+                f"Query interval below {MIN_QUERY_INTERVAL} seconds is invalid"
             )
-            return
-
         self._query_interval = val
 
     def log_message(self, message, *args):
