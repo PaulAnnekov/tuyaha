@@ -89,28 +89,15 @@ class TuyaDevice:
                 wait_delay = True
             if wait_delay:
                 time.sleep(0.5)
-            success, response = self.api.device_control(
-                self.obj_id, "QueryDevice", namespace="query"
-            )
-            self._last_query = datetime.now()
+
+            try:
+                success, response = self.api.device_control(
+                    self.obj_id, "QueryDevice", namespace="query"
+                )
+            finally:
+                self._last_query = datetime.now()
             if success:
                 data = response["payload"]["data"]
-
-            # Logging FrequentlyInvoke
-            else:
-                def get_result_code():
-                    if not response:
-                        return ""
-                    return response["header"]["code"]
-
-                result_code = get_result_code()
-                if result_code == "FrequentlyInvoke":
-                    self.api.log_message(
-                        "Method [Query] for device %s fails using poll interval %s - error: %s",
-                        self.obj_id,
-                        self.api.query_interval,
-                        response["header"].get("msg", result_code),
-                    )
 
         if data:
             if not self.data:
