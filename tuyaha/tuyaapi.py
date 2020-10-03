@@ -12,10 +12,14 @@ from tuyaha.devices.factory import get_tuya_device
 TUYACLOUDURL = "https://px1.tuya{}.com"
 DEFAULTREGION = "us"
 
-MIN_DISCOVERY_INTERVAL = 10.0
-DEF_DISCOVERY_INTERVAL = 60.0
-MIN_QUERY_INTERVAL = 10.0
-DEF_QUERY_INTERVAL = 30.0
+# use related discovery_interval property to set correct value based on API discovery limits
+MIN_DISCOVERY_INTERVAL = 10.0  # 10 seconds
+DEF_DISCOVERY_INTERVAL = 60.0  # 60 seconds
+
+# use related query_interval property to set correct value based on API query limits
+MIN_QUERY_INTERVAL = 10.0  # 10 seconds
+DEF_QUERY_INTERVAL = 30.0  # 30 seconds
+
 REFRESHTIME = 60 * 60 * 12
 
 _LOGGER = logging.getLogger(__name__)
