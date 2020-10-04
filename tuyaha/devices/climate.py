@@ -1,5 +1,8 @@
 from tuyaha.devices.base import TuyaDevice
 
+UNIT_CELSIUS = "CELSIUS"
+UNIT_FAHRENHEIT = "FAHRENHEIT"
+
 
 class TuyaClimate(TuyaDevice):
 
@@ -7,8 +10,14 @@ class TuyaClimate(TuyaDevice):
         super().__init__(data, api)
         self._unit = None
         self._divider = 0
+        self._divider_set = False
         self._ct_divider = 0
 
+    # this function return the temperature value
+    # divided by the _divider attribute previous set
+    # this is required because in same case API provide
+    # a temperature value that must be divided to provide decimal
+    # in other case just return the right temperature values
     def _set_decimal(self, val, divider=0):
         if val is None:
             return None
@@ -16,37 +25,76 @@ class TuyaClimate(TuyaDevice):
             divider = self._divider
             if divider == 0:
                 if val > 500 or val < -100:
+                    # in this case we suppose that returned value
+                    # support decimal and must be divided by 100
                     divider = 100
+                    self._divider = divider
                 else:
                     divider = 1
-                self._divider = divider
 
         return round(float(val / divider), 2)
 
+    # when unit is not provided by the API or the API return
+    # incorrect value, it can be forced by this method
+    # the _unit attribute is used by the temperature_unit() method
     def set_unit(self, unit):
+        """Set temperature unit (CELSIUS or FAHRENHEIT)"""
+        if unit != UNIT_CELSIUS and unit != UNIT_FAHRENHEIT:
+            raise ValueError(
+                f"Unit can only be set to {UNIT_CELSIUS} or {UNIT_FAHRENHEIT}"
+            )
         self._unit = unit
 
-    def set_temp_divider(self, divider):
-        self._divider = divider
+    @property
+    def temp_divider(self):
+        return self._divider if self._divider_set else 0
 
-    def set_curr_temp_divider(self, divider):
+    @temp_divider.setter
+    def temp_divider(self, divider):
+        """Set a divider used to calculate returned temperature. Default=0"""
+        if divider < 0:
+            raise ValueError("Temperature divider must be a positive value")
+        # this check is to avoid that divider is changed from calculated value
+        if (self._divider_set and divider == 0) or divider > 0:
+            self._divider = divider
+        self._divider_set = divider > 0
+
+    @property
+    def curr_temp_divider(self):
+        return self._ct_divider
+
+    @curr_temp_divider.setter
+    def curr_temp_divider(self, divider):
+        """Set a divider used to calculate returned current temperature
+           If not defined standard temperature divider is used"""
+        if divider < 0:
+            raise ValueError("Current temperature divider must be a positive value")
         self._ct_divider = divider
 
     def has_decimal(self):
+        """Return if temperature values support decimal"""
         return self._divider >= 10
 
+    # temperature unit returned by API in many case is incorrect
+    # before taking the value returned by API, we apply some logic
+    # to try to identify the correct value. The determined value
+    # can always be overwritten using method set_unit()
     def temperature_unit(self):
+        """Return the temperature unit for the device"""
         if not self._unit:
             if self._divider == 0:
-                self.max_temp()
+                self.max_temp()  # this calculate divider first time
             curr_temp = self.current_temperature()
             if curr_temp is None:
-                self._unit = "CELSIUS"
+                self._unit = UNIT_CELSIUS  # default to celsius
                 return self._unit
+            # if current temperature is over 50 and does not use decimal
+            # we assume that the unit is fahrenheit. This can always be
+            # overwritten by method set_unit()
             if curr_temp > 50 and not self.has_decimal():
-                self._unit = "FAHRENHEIT"
+                self._unit = UNIT_FAHRENHEIT
             else:
-                self._unit = self.data.get("temp_unit", "CELSIUS")
+                self._unit = self.data.get("temp_unit", UNIT_CELSIUS)
         return self._unit
 
     def current_humidity(self):
@@ -62,13 +110,18 @@ class TuyaClimate(TuyaDevice):
         return self.data.get("support_mode")
 
     def current_temperature(self):
-        curr_temp = self._set_decimal(self.data.get("current_temperature"), self._ct_divider)
+        """Return current temperature for the device"""
+        curr_temp = self._set_decimal(
+            self.data.get("current_temperature"), self._ct_divider
+        )
+        # when current temperature is not available, target temperature is returned
         if curr_temp is None:
             return self.target_temperature()
         return curr_temp
 
     def target_temperature(self):
-        return self._set_decimal(self.data.get("temperature"), self._ct_divider)
+        """Return target temperature for the device"""
+        return self._set_decimal(self.data.get("temperature"))
 
     def target_temperature_step(self):
         if self.has_decimal():
@@ -114,12 +167,9 @@ class TuyaClimate(TuyaDevice):
 
     def set_temperature(self, temperature):
         """Set new target temperature."""
-        if self._ct_divider > 0:
-            divider = self._ct_divider
-        else:
-            divider = self._divider
-        if divider == 0:
-            divider = 1
+
+        # the value used to set temperature is scaled based on the configured divider
+        divider = self._divider or 1
 
         if not self.has_decimal():
             temp_val = round(float(temperature))

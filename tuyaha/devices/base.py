@@ -47,6 +47,9 @@ class TuyaDevice:
 
     def _update_data(self, key, value, force_val=False):
         if self.data:
+            # device properties not provided by Tuya API are saved in the
+            # device cache only if force_val=True. This is used to force
+            # in cache missing API values (e.g color mode for light)
             if not force_val and self.data.get(key) is None:
                 return
             self.data[key] = value
@@ -60,9 +63,15 @@ class TuyaDevice:
             self._last_update = datetime.now()
         return success
 
+    # Update device cache using discovery or query command
+    # Due to the limitation of both command it is possible
+    # to choose which one to use. Because discovery return data
+    # for all devices, is preferred method with multiple device
+    # Query can be called with higher frequency but return
+    # values for a single device
     def _update(self, use_discovery):
 
-        """Avoid get cache value after control."""
+        # Avoid get cache value after control.
         difference = (datetime.now() - self._last_update).total_seconds()
         wait_delay = difference < 0.5
 
