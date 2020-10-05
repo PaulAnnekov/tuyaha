@@ -54,7 +54,8 @@ class TuyaClimate(TuyaDevice):
         """Set a divider used to calculate returned temperature. Default=0"""
         if divider < 0:
             raise ValueError("Temperature divider must be a positive value")
-        # this check is to avoid that divider is changed from calculated value
+        # this check is to avoid that divider is reset from
+        # calculated value when is set to 0
         if (self._divider_set and divider == 0) or divider > 0:
             self._divider = divider
         self._divider_set = divider > 0
@@ -75,26 +76,10 @@ class TuyaClimate(TuyaDevice):
         """Return if temperature values support decimal"""
         return self._divider >= 10
 
-    # temperature unit returned by API in many case is incorrect
-    # before taking the value returned by API, we apply some logic
-    # to try to identify the correct value. The determined value
-    # can always be overwritten using method set_unit()
     def temperature_unit(self):
         """Return the temperature unit for the device"""
         if not self._unit:
-            if self._divider == 0:
-                self.max_temp()  # this calculate divider first time
-            curr_temp = self.current_temperature()
-            if curr_temp is None:
-                self._unit = UNIT_CELSIUS  # default to celsius
-                return self._unit
-            # if current temperature is over 50 and does not use decimal
-            # we assume that the unit is fahrenheit. This can always be
-            # overwritten by method set_unit()
-            if curr_temp > 50 and not self.has_decimal():
-                self._unit = UNIT_FAHRENHEIT
-            else:
-                self._unit = self.data.get("temp_unit", UNIT_CELSIUS)
+            self._unit = self.data.get("temp_unit", UNIT_CELSIUS)
         return self._unit
 
     def current_humidity(self):
