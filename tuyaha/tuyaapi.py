@@ -15,14 +15,14 @@ DEFAULTREGION = "us"
 # Tuya API do not allow call to discovery command below specific limits
 # Use discovery_interval property to set correct value based on API discovery limits
 # Next 2 parameter define the default and minimum allowed value for the property
-MIN_DISCOVERY_INTERVAL = 10.0  # 10 seconds
-DEF_DISCOVERY_INTERVAL = 60.0  # 60 seconds
+MIN_DISCOVERY_INTERVAL = 10.0
+DEF_DISCOVERY_INTERVAL = 60.0
 
 # Tuya API do not allow call to query command below specific limits
 # Use query_interval property to set correct value based on API query limits
 # Next 2 parameter define the default and minimum allowed value for the property
-MIN_QUERY_INTERVAL = 10.0  # 10 seconds
-DEF_QUERY_INTERVAL = 30.0  # 30 seconds
+MIN_QUERY_INTERVAL = 10.0
+DEF_QUERY_INTERVAL = 30.0
 
 REFRESHTIME = 60 * 60 * 12
 
