@@ -2,27 +2,25 @@ from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaCover(TuyaDevice):
+
     def state(self):
         state = self.data.get("state")
         return state
 
     def open_cover(self):
         """Open the cover."""
-        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
-
-        if success:
-            self.data["state"] = True
+        if self._control_device("turnOnOff", {"value": "1"}):
+            self._update_data("state", 1)
 
     def close_cover(self):
         """Close cover."""
-        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
-
-        if success:
-            self.data["state"] = False
+        if self._control_device("turnOnOff", {"value": "0"}):
+            self._update_data("state", 2)
 
     def stop_cover(self):
         """Stop the cover."""
-        self.api.device_control(self.obj_id, "startStop", {"value": "0"})
+        if self._control_device("startStop", {"value": "0"}):
+            self._update_data("state", 3)
 
     def support_stop(self):
         support = self.data.get("support_stop")

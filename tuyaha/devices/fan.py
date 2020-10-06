@@ -2,12 +2,6 @@ from tuyaha.devices.base import TuyaDevice
 
 
 class TuyaFanDevice(TuyaDevice):
-    def state(self):
-        state = self.data.get("state")
-        if state == "true":
-            return True
-        else:
-            return False
 
     def speed(self):
         return self.data.get("speed")
@@ -23,26 +17,24 @@ class TuyaFanDevice(TuyaDevice):
         return self.data.get("direction")
 
     def set_speed(self, speed):
-        self.api.device_control(self.obj_id, "windSpeedSet", {"value": speed})
+        if self._control_device("windSpeedSet", {"value": speed}):
+            self._update_data("speed", speed)
 
     def oscillate(self, oscillating):
         if oscillating:
             command = "swingOpen"
         else:
             command = "swingClose"
-        self.api.device_control(self.obj_id, command)
+        if self._control_device(command):
+            self._update_data("direction", oscillating)
 
     def turn_on(self):
-        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
-
-        if success:
-            self.data["state"] = "true"
+        if self._control_device("turnOnOff", {"value": "1"}):
+            self._update_data("state", "true")
 
     def turn_off(self):
-        success, _response = self.api.device_control(self.obj_id, "turnOnOff", {"value": "0"})
-
-        if success:
-            self.data["state"] = "false"
+        if self._control_device("turnOnOff", {"value": "0"}):
+            self._update_data("state", "false")
 
     def support_oscillate(self):
         if self.oscillating() is None:

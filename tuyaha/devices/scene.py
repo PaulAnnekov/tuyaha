@@ -8,5 +8,5 @@ class TuyaScene(TuyaDevice):
     def activate(self):
         self.api.device_control(self.obj_id, "turnOnOff", {"value": "1"})
 
-    def update(self):
+    def update(self, use_discovery=True):
         return True
