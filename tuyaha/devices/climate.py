@@ -157,7 +157,7 @@ class TuyaClimate(TuyaDevice):
         divider = self._divider or 1
 
         if not self.has_decimal():
-            temp_val = round(float(temperature))
+            temp_val = round(float(temperature), 1)
             set_val = temp_val * divider
         else:
             temp_val = set_val = round(float(temperature) * divider)
