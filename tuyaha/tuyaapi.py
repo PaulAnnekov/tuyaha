@@ -122,6 +122,8 @@ class TuyaApi:
             message = response_json.get("errorMsg")
             if message == "error":
                 raise TuyaAPIException("get access token failed")
+            elif message == "you cannot auth exceed once in 60 seconds":
+                raise TuyaAPIRateLimitException("login rate limited")
             else:
                 raise TuyaAPIException(message)
 
@@ -305,4 +307,7 @@ class TuyaServerException(Exception):
 
 
 class TuyaFrequentlyInvokeException(Exception):
+    pass
+
+class TuyaAPIRateLimitException(Exception):
     pass
