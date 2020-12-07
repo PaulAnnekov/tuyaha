@@ -246,7 +246,7 @@ class TuyaApi:
                 (TUYACLOUDURL + "/homeassistant/skill").format(SESSION.region), json=data
             )
         except RequestsConnectionError as ex:
-            _LOGGER.debug(
+            _LOGGER.warning(
                 "request error, error code is %s, device %s",
                 ex,
                 devId,
@@ -268,7 +268,7 @@ class TuyaApi:
                     name, response_json["header"].get("msg", result_code), devId
                 )
             else:
-                _LOGGER.debug(
+                _LOGGER.warning(
                     "control device error, error code is " + response_json["header"]["code"]
                 )
         return response_json
