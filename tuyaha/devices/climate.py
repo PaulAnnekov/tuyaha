@@ -76,6 +76,10 @@ class TuyaClimate(TuyaDevice):
         """Return if temperature values support decimal"""
         return self._divider >= 10
 
+    def has_halves(self):
+        """Return if temperature values support halves"""
+        return self._divider % 2 == 0
+
     def temperature_unit(self):
         """Return the temperature unit for the device"""
         if not self._unit:
@@ -110,6 +114,8 @@ class TuyaClimate(TuyaDevice):
 
     def target_temperature_step(self):
         if self.has_decimal():
+            return 0.1
+        elif self.has_halves():
             return 0.5
         return 1.0
 
@@ -157,7 +163,10 @@ class TuyaClimate(TuyaDevice):
         divider = self._divider or 1
 
         if not self.has_decimal():
-            temp_val = round(float(temperature))
+            if self.has_halves():
+                temp_val = round(float(temperature) * 20.0) / 20.0
+            else
+                temp_val = round(float(temperature))
             set_val = temp_val * divider
         else:
             temp_val = set_val = round(float(temperature) * divider)
