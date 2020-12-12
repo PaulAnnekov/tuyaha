@@ -309,5 +309,6 @@ class TuyaServerException(Exception):
 class TuyaFrequentlyInvokeException(Exception):
     pass
 
+
 class TuyaAPIRateLimitException(Exception):
     pass
