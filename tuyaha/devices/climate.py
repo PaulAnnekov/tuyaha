@@ -3,6 +3,16 @@ from tuyaha.devices.base import TuyaDevice
 UNIT_CELSIUS = "CELSIUS"
 UNIT_FAHRENHEIT = "FAHRENHEIT"
 
+STEP_WHOLE = 1
+STEP_HALVES = 0.5
+STEP_TENTHS = 0.1
+
+TEMP_STEPS = {
+    STEP_WHOLE: "Whole",
+    STEP_HALVES: "Halves",
+    STEP_TENTHS: "Tenths",
+}
+
 
 class TuyaClimate(TuyaDevice):
 
@@ -56,9 +66,9 @@ class TuyaClimate(TuyaDevice):
             raise ValueError("Temperature divider must be a positive value")
         # this check is to avoid that divider is reset from
         # calculated value when is set to 0
-        if (self._divider_set and divider == 0) or divider > 0:
-            self._divider = divider
-        self._divider_set = divider > 0
+        if (self._divider_set and divider < 1) or divider >= 1:
+            self._divider = int(divider)
+        self._divider_set = divider >= 1
 
     @property
     def curr_temp_divider(self):
@@ -70,7 +80,7 @@ class TuyaClimate(TuyaDevice):
            If not defined standard temperature divider is used"""
         if divider < 0:
             raise ValueError("Current temperature divider must be a positive value")
-        self._ct_divider = divider
+        self._ct_divider = int(divider)
 
     def has_decimal(self):
         """Return if temperature values support decimal"""
@@ -110,8 +120,11 @@ class TuyaClimate(TuyaDevice):
 
     def target_temperature_step(self):
         if self.has_decimal():
-            return 0.5
-        return 1.0
+            return STEP_HALVES
+        return STEP_WHOLE
+
+    def supported_temperature_steps(self):
+        return TEMP_STEPS
 
     def current_fan_mode(self):
         """Return the fan setting."""
@@ -150,17 +163,22 @@ class TuyaClimate(TuyaDevice):
     def max_humidity(self):
         pass
 
-    def set_temperature(self, temperature):
+    def set_temperature(self, temperature, use_divider=True):
         """Set new target temperature."""
 
         # the value used to set temperature is scaled based on the configured divider
         divider = self._divider or 1
+        input_val = float(temperature)
+        scaled_val = input_val * divider
+        digits1 = None if input_val.is_integer() else 1
+        digits2 = None if scaled_val.is_integer() else 1
 
-        if not self.has_decimal():
-            temp_val = round(float(temperature))
-            set_val = temp_val * divider
+        set_val = round(scaled_val, digits2)
+        if use_divider:
+            temp_val = round(input_val, digits1)
         else:
-            temp_val = set_val = round(float(temperature) * divider)
+            temp_val = set_val
+
         if self._control_device("temperatureSet", {"value": temp_val}):
             self._update_data("temperature", set_val)
 
