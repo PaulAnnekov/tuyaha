@@ -83,11 +83,12 @@ class TuyaApi:
             )
         self._query_interval = val
 
-    def init(self, username, password, countryCode, bizType=""):
+    def init(self, username, password, countryCode, bizType="", region=DEFAULTREGION):
         SESSION.username = username
         SESSION.password = password
         SESSION.countryCode = countryCode
         SESSION.bizType = bizType
+        SESSION.region = region
 
         self._requestSession = requests.Session()
 
