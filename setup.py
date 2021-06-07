@@ -15,6 +15,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     url="https://github.com/PaulAnnekov/tuyaha",
     license="MIT",
+    install_requires=["requests"],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
