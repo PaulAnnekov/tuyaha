@@ -19,4 +19,4 @@ This clone contains several critical fixes. Check commits.
 
 ### My device is not listed in Tuya API response or contains incomplete state, what should I do?
 
-Write an email to tuyasmart@tuya.com and mention the `tuyapy` library and `https://px1.tuya{}.com` API endpoint. Usually they ignore incoming emails, but perhaps, if they get a lot of emails, they will start fixing the API.
+Try new custom component from Tuya developers https://github.com/tuya/tuya-home-assistant/ or ask them to support your device.
