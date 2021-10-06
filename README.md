@@ -1,5 +1,7 @@
 # tuyaha
 
+## This library was maintained exclusively for Home Assistant Tuya component. As HA 2021.10.0 switched to Tuya-supported [tuya-iot-py-sdk](https://pypi.org/project/tuya-iot-py-sdk/) library (finally 😮‍💨), there is no sense to continue supporting this library which uses deprecated API.
+
 Cloned from the abandoned package [tuyapy](https://pypi.org/project/tuyapy/) v0.1.3. This package implements a Tuya
 API endpoint that was specially designed for Home Assistant.
 
